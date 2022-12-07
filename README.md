@@ -38,5 +38,5 @@ PyTorch implementation for paper: TULAM
 - Adjust the hyperparameters and strategies according to the needs
   - e.g. ```python main.py --dataset gowalla --isDense D```
 
-##Citation
+## Citation
 If you want to use our codes in your research, please cite:
