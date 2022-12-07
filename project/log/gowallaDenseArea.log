@@ -1,0 +1,20 @@
+configure:
+   batchSize: 64
+   epochs: 100
+   numHeads: 6
+num of trajectory: 21760
+num of user: 153
+num of trajectory in trainSet: 19924
+num of trajectory in testSet: 1836
+dimension of approximateOnehot: 1381
+train done.
+time cost: 447268.09375
+Accuracy: 0.5686383928571429
+Macro-P: 0.5789402585811653
+Macro-R: 0.559368191721133
+Macro-F1: 0.5689859641665839
+Test top1 Accuracy of the model on the testdata: 0.5686383928571429
+Test top3 Accuracy of the model on the testdata: 0.70703125
+Test top5 Accuracy of the model on the testdata: 0.7572544642857143
+Test top10 Accuracy of the model on the testdata: 0.82421875
+Done
