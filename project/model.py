@@ -13,7 +13,7 @@ class Multi_Head_Attention_LSTM(nn.Module):
         self.batch_size = batch_size
         self.layer1 = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
         self.layer2 = nn.Dropout(p=0.6)
-        self.layer3 = nn.Linear(hidden_size, hidden_size)
+        self.layer3 = nn.Linear(2*hidden_size, hidden_size)
         self.layer4 = nn.Dropout(p=0.6)
         self.layer5 = nn.Linear(hidden_size, num_classes)
         self.num_heads = num_heads
@@ -64,7 +64,7 @@ class Multi_Head_Attention_LSTM(nn.Module):
         mean_context_vector = torch.mean(context_tensor, dim=0)  # 64*400
         mean_context_vector = mean_context_vector.permute(1, 0, 2)
         h1 = h1.permute(1, 0, 2)
-        out = h1 * mean_context_vector
+        out = torch.cat((h1,mean_context_vector),2)
 
         '''
         atten_energies = torch.sum(h1*permute_outputs, dim=2)
