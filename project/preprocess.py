@@ -19,9 +19,7 @@ def rename_time_gowalla(DF):
 
 
 def rename_uid(DF):
-    # 重新编号uid
     userID_list = DF['userID'].unique()
-    # print(userID_list)
     newid = 0
     DF['newuserID'] = np.NaN
     for uid in userID_list:
@@ -40,15 +38,13 @@ def narrowScope(Allcheckins, minlon=-180.0, maxlon=180.0, minlat=-85.0, maxlat=8
     Removelist += Allcheckins[Allcheckins['longitude'] > maxlon].index.tolist()
     Removelist += Allcheckins[Allcheckins['latitude'] < minlat].index.tolist()
     Removelist += Allcheckins[Allcheckins['latitude'] > maxlat].index.tolist()
-    Allcheckins.drop(Removelist, axis=0, inplace=True)  # inplace=True表示直接在此副本上删除
+    Allcheckins.drop(Removelist, axis=0, inplace=True)
     g = Allcheckins.groupby(['userID'], as_index=False)
-    # as_index=False表示不用组标签当作index，index仍然是0123。。。
-    # count_table = g.size().reset_index(name='num_checkins')  #添加一列叫做lenofTr
+
     count_table = g.size().rename(columns={'size': 'num_checkins'})
     retain_user = count_table[count_table['num_checkins'] >= threshold_checkins]
     retain_list = retain_user['userID'].tolist()
-    # print(count_table)
-    # print(retain_list)
+
     Allcheckins = Allcheckins[Allcheckins['userID'].isin(retain_list)]
     return Allcheckins
 
@@ -60,7 +56,6 @@ def getData(dataset_path, minlon, maxlon, minlat, maxlat, threshold_checkins):
     allCheckin = pd.read_csv(dataset_path)
 
     # -------------narrow the scope----------#
-    # allCheckin = narrowScope(allCheckin, -77.8, -73, 38.6, 41.3, 300)
     allCheckin = narrowScope(allCheckin, minlon, maxlon, minlat, maxlat, threshold_checkins)
 
     # -------------statistic--------------#
@@ -123,7 +118,6 @@ def txt2csv_gowalla(filename):
 
 
 def coordinate2grid(Allcheckins, cellsize: float) -> pd.DataFrame:
-    # cellsize: 每个格子的长度，单位为km。实际长度与该数值有一定偏差，但不超过1%，因此可以忽视
     maxlon, minlon = Allcheckins["longitude"].max(), Allcheckins["longitude"].min()
     maxlat, minlat = Allcheckins["latitude"].max(), Allcheckins["latitude"].min()
     midlat = (maxlat + minlat) / 2
@@ -144,22 +138,21 @@ def checkin2trajectory(Allcheckins, interval_hour):
     for userID in tqdm(range(userNum), desc='divide checkins into trajectory'):
         Tr_user = Allcheckins[Allcheckins['userID'] == userID]
         Tr_user = Tr_user.sort_values(by="utc", ascending=True)
-        Tr_user_sorted = Tr_user.reset_index(drop=True)  # 重置index,drop=True表示原来的index不要了
+        Tr_user_sorted = Tr_user.reset_index(drop=True)
         TrID = 0
 
         for index in range(0, len(Tr_user_sorted)):
-            if index != len(Tr_user_sorted) - 1:  # 不是该用户的最后一个签到点
+            if index != len(Tr_user_sorted) - 1:
                 intervalSec = Tr_user_sorted.iloc[index + 1]['utc'] - Tr_user_sorted.iloc[index]['utc']
-                # 填充新的one_point结构，将上述信息添加到RawSubTr这个DF中
                 rowID = Tr_user_sorted.iloc[index]['rowID']
                 colID = Tr_user_sorted.iloc[index]['colID']
                 ts = Tr_user_sorted.iloc[index]['utc']
                 one_point = np.array([userID, TrID, rowID, colID, ts]).reshape(1, 5)
                 insertRow = pd.DataFrame(one_point, columns=['userID', 'TrID', 'rowID', 'colID', 'utc'])
                 RawSubTr = RawSubTr.append(insertRow, ignore_index=True)
-                if intervalSec >= interval_hour * 60 * 60:  # 切分,超过时间间隔，划分为另一个子轨迹的id
+                if intervalSec >= interval_hour * 60 * 60:
                     TrID = TrID + 1
-            else:  # 是该用户的最后一个签到点，用当前的subTrID填充即可，其他的都是照抄。
+            else:
                 rowID = Tr_user_sorted.iloc[index]['rowID']
                 colID = Tr_user_sorted.iloc[index]['colID']
                 ts = Tr_user_sorted.iloc[index]['utc']
